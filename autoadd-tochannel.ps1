@@ -1,18 +1,24 @@
-#Where is the file?
-$fielocation = "C:\Users\Administrator\Downloads\classtoimport.csv"
+#Where is the file?  It needs the headers (in order) student,class
+$fielocation = ""
 
 #Import the file into powershell and pipe it to group-object and group them into the time tabled class
 $studentandclasslist = Import-Csv $fielocation | Group-Object -Property class
 
-#Can we write host the class names?
-Write-Host $studentandclasslist.name
+#We need to know the groupid of the team
+$teamid = ""
 
 #Lets try making a channel, channels must be private to be able to add members to them)
-foreach ($line in $studentandclasslist.name) {New-TeamChannel -GroupId <id> -DisplayName $line -MembershipType Private}
+foreach ($line in $studentandclasslist.name) {New-TeamChannel -GroupId $teamid -DisplayName $line -MembershipType Private}
 
+#Now that we have the channels must add the students into the team first
+foreach ($student in $studentandclasslist.group) {Add-TeamUser -GroupId $teamid -User $student.student -Role Member}
 
-#Now lets add students into the correct channel based of their group
-Add-TeamChannelUser -GroupId <id> -DisplayName "<>" -User email@address.com
-
-#Can we do something with the .group of $studentandclasslist (note this write all of them to host)
-foreach ($student in $studentandclasslist.group) {Write-Host $student}
+#Now we add students into the channels they are suppose to belong to
+$classes = $studentandclasslist.name# Processes based on each class
+foreach($xclass in $classes){    #Instantiates the variable with null value
+    $null = $classusers,$channel    #Sorts users based on the Class, in this casse will be the first class($xclass) in $Classes 
+    $classusers = $studentandclasslist.group | Where-Object Class -eq $xclass
+    $channel = Get-TeamChannel -GroupId $teamid
+        foreach ($user in $classusers){
+        Add-TeamChannelUser -GroupId $teamid -DisplayName $xclass -User $user.student
+    }}
