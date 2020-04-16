@@ -1,3 +1,6 @@
+#This is a copy and paste from here https://docs.microsoft.com/en-us/microsoft-365/admin/create-groups/manage-creation-of-groups?view=o365-worldwide
+#This will set it so that only the group called "Office 365 - Allowed to create Office 365 Groups" will be able to create groups, teams and sharepoint sites etc
+
 $GroupName = "Office 365 - Allowed to create Office 365 Groups"
 $AllowGroupCreation = "False"
 
