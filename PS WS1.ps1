@@ -188,8 +188,6 @@ PlatformId "11" = Windows Phone
 PlatformId "12" = Windows Desktop
 #>
 
-
-
 $DeviceBody = @{
     LocationGroupId = $LocationGroupIdNumber
     FriendlyName = ""
