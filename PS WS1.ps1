@@ -9,6 +9,12 @@ PowerShell GUI tutorial from https://theitbros.com/powershell-gui-for-scripts/
 $DC = ""
 #Which OU do we want to search for our users in?
 $OU = ""
+#What is your Workspace ONE LocationGroupID number?
+$LocationGroupIdNumber = ""
+#What device ownership type do you want?
+$OwnershipType = "C"
+#What device platform type do you want?
+$PlatformIdType = "12"
 
 #We need some details on how to connect to Workspace ONE via API
 
@@ -61,7 +67,7 @@ $main_form.Width = 600
 $main_form.Height = 400
 $main_form.AutoSize = $true
 
-#It is 2021 are we even allowed to label things anymore?
+#A label that says "Select a user ID number"
 $Label = New-Object System.Windows.Forms.Label
 $Label.Text = "Select a user ID number"
 $Label.Location  = New-Object System.Drawing.Point(0,10)
@@ -82,33 +88,47 @@ $ComboBox.Items.Add($User.extensionAttribute6);
 $ComboBox.Location  = New-Object System.Drawing.Point(60,10)
 $main_form.Controls.Add($ComboBox)
 
-#A label (yeah I know really got to stop) that will show when the users AD login name
+#A label that states "Users AD login name"
 $Label2 = New-Object System.Windows.Forms.Label
 $Label2.Text = "Users AD login name"
 $Label2.Location  = New-Object System.Drawing.Point(0,40)
 $Label2.AutoSize = $true
 $main_form.Controls.Add($Label2)
 
-#What is the users username?
+#The resuts that actuall show the Users AD login name
 $Label3 = New-Object System.Windows.Forms.Label
 $Label3.Text = ""
 $Label3.Location  = New-Object System.Drawing.Point(110,40)
 $Label3.AutoSize = $true
 $main_form.Controls.Add($Label3)
 
-#A label for Workspace ONE
+#A label that states "Users device in Workspace ONE:
 $Label4 = New-Object System.Windows.Forms.Label
 $Label4.Text = "Users device in Workspace ONE"
 $Label4.Location  = New-Object System.Drawing.Point(0,80)
 $Label4.AutoSize = $true
 $main_form.Controls.Add($Label4)
 
-#The users device is
+#The results returned showing the users device from Workspace ONE
 $Label5 = New-Object System.Windows.Forms.Label
 $Label5.Text = ""
 $Label5.Location  = New-Object System.Drawing.Point(110,80)
 $Label5.AutoSize = $true
 $main_form.Controls.Add($Label5)
+
+#A label that states "The users Workspace ONE ID"
+$Label6 = New-Object System.Windows.Forms.Label
+$Label6.Text = "The users Workspace ONE ID"
+$Label6.Location  = New-Object System.Drawing.Point(110,80)
+$Label6.AutoSize = $true
+$main_form.Controls.Add($Label6)
+
+#The actual results for the "Workspace ONE ID of the user"
+$Label7 = New-Object System.Windows.Forms.Label
+$Label7.Text = ""
+$Label7.Location  = New-Object System.Drawing.Point(110,80)
+$Label7.AutoSize = $true
+$main_form.Controls.Add($Label7)
 
 #Let's have a button that people can push #PushItPushItRealGood
 $Button = New-Object System.Windows.Forms.Button
@@ -152,23 +172,49 @@ $Label5.Text = $device.Devices.SerialNumber
 <#We need to know the folowing
 WorkSpace ONE user ID for our user who we are going to assign the deivce to
 LocationGroupId for the user and device
-Device FriendlyName
-Device SerialNumber
+Device FriendlyName i.e. OrgCode-%SerialNumber%
+Device SerialNumber i.e. 
+Ownership
+Based on trail and error (because I couldn't find it explicted stated in the WS1 API documentation)
+
+LocationGroupId = "" (Unsure where you can find this in the console)
+Ownership "C" = Corporate - Dedicated 
+Ownership "E" =  Employee Owned?
+PlatformId "5" = Android
+PlatformId "6" = Athena
+PlatformId "9" = Windows 7
+PlatformId "10" = Apple macOS
+PlatformId "11" = Windows Phone
+PlatformId "12" = Windows Desktop
 #>
-$userid = ""
-$body = @{
-  FriendlyName = ""
-  SerialNumber = ""
-  Ownership = "C"
-  LocationGroupId = ""
+
+
+
+$DeviceBody = @{
+    LocationGroupId = $LocationGroupIdNumber
+    FriendlyName = ""
+    Ownership = $OwnershipType
+    PlatformId = $PlatformIdType
+    SerialNumber = ""
+
 }
 
 #Assign that actual device to a user in Workspace ONE
 
+<# This code may have changed
 $Button3.Add_Click(
 {
 $usertocheck = $Label3.Text 
 $deviceenrollment = Invoke-RestMethod -Uri "$server/API/system/users/$userid/registerdevice" -Method Post -Headers $header_v1 -Body ($body | ConvertTo-Json)
+}
+)
+#>
+
+#Ths is possible the new correct code
+$Button3.Add_Click(
+{
+$usertocheck = $Label3.Text 
+$deviceenrollment = Invoke-RestMethod -Uri "$server/API/system/users/$userid/registerdevice" -Method Post -Headers $header_v1 -Body $DeviceBody
 }
 )
 
