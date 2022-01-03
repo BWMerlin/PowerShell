@@ -19,7 +19,7 @@ $PlatformIdType = "12"
 #We need some details on how to connect to Workspace ONE via API
 
 #First we set up our OAuth details I know API keys shouldn't be stored in code but not sure how else todo this for now
-$server = "https://cn500.airwatchportals.com"
+$Server = "https://cn500.airwatchportals.com"
 $client_id = ""
 $client_secret = ""
 
@@ -85,8 +85,15 @@ Foreach ($User in $Users)
 #$ComboBox.Items.Add($User.SamAccountName);
 $ComboBox.Items.Add($User.extensionAttribute6);
 }
+#Where do we want our $ComboBox to actually be placed in our GUI
 $ComboBox.Location  = New-Object System.Drawing.Point(200,10)
 $main_form.Controls.Add($ComboBox)
+
+#We want a text input that allows us to input the serial number of a device
+$DeviceSerialNumberInput = New-Object System.Windows.Forms.TextBox
+#Where do we want our $DeviceSerialNumberInput TextBox to be placed in our GUI
+$DeviceSerialNumberInput.Location = New-Object System.Drawing.Point(200,130)
+$main_form.Controls.Add($DeviceSerialNumberInput)
 
 #A label that states "Users AD login name"
 $Label2 = New-Object System.Windows.Forms.Label
@@ -177,8 +184,8 @@ $Label3.Text = $GetUser.SamAccountName
 #Let us check Workspace ONE for the users device
 $Button2.Add_Click(
 {
-$usertocheck = $Label3.Text 
-$device = Invoke-RestMethod -Uri "$server/api/mdm/devices/search?user=$usertocheck" -Method Get -Headers $header_v1
+$UserToCheck = $Label3.Text 
+$device = Invoke-RestMethod -Uri "$Server/api/mdm/devices/search?user=$UserToCheck" -Method Get -Headers $header_v1
 $Label5.Text = $device.Devices.SerialNumber
 }
 )
@@ -186,8 +193,8 @@ $Label5.Text = $device.Devices.SerialNumber
 #Let us check Workspace ONE for the users ID number
 $Button3.Add_Click(
 {
-$usertocheck = $Label3.Text 
-$UserIDCheck = Invoke-RestMethod -Uri "$server/API/system/users/search?username=$usertocheck" -Method Get -Headers $header_v1
+$UserToCheck = $Label3.Text 
+$UserIDCheck = Invoke-RestMethod -Uri "$Server/API/system/users/search?username=$UserToCheck" -Method Get -Headers $header_v1
 $Label7.Text = $UserIDCheck.Users.id.Value
 }
 )
@@ -213,10 +220,10 @@ PlatformId "12" = Windows Desktop
 
 $DeviceBody = @{
     LocationGroupId = $LocationGroupIdNumber
-    FriendlyName = ""
+    FriendlyName = $DeviceSerialNumberInput.Text
     Ownership = $OwnershipType
     PlatformId = $PlatformIdType
-    SerialNumber = ""
+    SerialNumber = $DeviceSerialNumberInput.Text
 
 }
 
@@ -225,8 +232,8 @@ $DeviceBody = @{
 <# This code may have changed
 $Button4.Add_Click(
 {
-$usertocheck = $Label3.Text 
-$deviceenrollment = Invoke-RestMethod -Uri "$server/API/system/users/$userid/registerdevice" -Method Post -Headers $header_v1 -Body ($body | ConvertTo-Json)
+$UserToCheck = $Label3.Text 
+$deviceenrollment = Invoke-RestMethod -Uri "$Server/API/system/users/$userid/registerdevice" -Method Post -Headers $header_v1 -Body ($body | ConvertTo-Json)
 }
 )
 #>
@@ -234,8 +241,8 @@ $deviceenrollment = Invoke-RestMethod -Uri "$server/API/system/users/$userid/reg
 #Ths is possible the new correct code
 $Button4.Add_Click(
 {
-$usertocheck = $Label3.Text 
-$DeviceEnrollment = Invoke-RestMethod -Uri "$server/API/system/users/$userid/registerdevice" -Method Post -Headers $header_v1 -Body $DeviceBody
+$UserID = $Label7.Text 
+$DeviceEnrollment = Invoke-RestMethod -Uri "$Server/API/system/users/$UserID/registerdevice" -Method Post -Headers $header_v1 -Body ($DeviceBody | ConvertTo-Json)
 }
 )
 
