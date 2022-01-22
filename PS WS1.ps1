@@ -2,11 +2,12 @@
 We want an easy way to manage devices by adding, assigning and removed them from Workspace ONE, Active Directory, printing lists and barcodes and so on
 Built using the Workspace ONE API tutorial from https://www.brookspeppin.com/2021/07/24/rest-api-in-workspace-one-uem/ and the 
 PowerShell GUI tutorial from https://theitbros.com/powershell-gui-for-scripts/
+Great guide for using other authorisation methods https://blog.mobinergy.com/workspace-one-apis-authentication/ and https://github.com/Mobinergy/workspace-one-apis-authentication
 #>
 
 #Let's set some variables
-#Which Active Directory server do we want to search for our users in?
-$DC = ""
+#We need to find a domain controller
+$DC = Get-ADDomainController | Select-Object HostName
 #Which OU do we want to search for our users in?
 $OU = ""
 #What is your Workspace ONE LocationGroupID number?
@@ -76,7 +77,7 @@ $main_form.Controls.Add($Label)
 
 #A combo box which will contain a list of users from AD
 $ComboBox = New-Object System.Windows.Forms.ComboBox
-$ComboBox.Width = 200
+$ComboBox.Width = 150
 #We want to search the our domain but only in the specified OU but we want to search by "sID" number so we can barcode scan them in
 $Users = Get-ADUser -filter * -Properties extensionAttribute6 -SearchBase $OU -Server $DC
 
@@ -94,6 +95,12 @@ $DeviceSerialNumberInput = New-Object System.Windows.Forms.TextBox
 #Where do we want our $DeviceSerialNumberInput TextBox to be placed in our GUI
 $DeviceSerialNumberInput.Location = New-Object System.Drawing.Point(200,130)
 $main_form.Controls.Add($DeviceSerialNumberInput)
+
+#We want to be able to save our work to a CSV file so we have a record of who has what which can be loaded into other systems as required
+$CSVSelect = New-Object System.Windows.Forms.ListBox
+#Where do we want our $CSVSelect ListBox to be placed in our GUI
+$CSVSelect.Location = New-Object System.Drawing.Point(200,160)
+$main_form.Controls.Add($CSVSelect)
 
 #A label that states "Users AD login name"
 $Label2 = New-Object System.Windows.Forms.Label
@@ -144,6 +151,13 @@ $Label8.Location  = New-Object System.Drawing.Point(0,130)
 $Label8.AutoSize = $true
 $main_form.Controls.Add($Label8)
 
+#A label that says "Load in CSV file"
+$Label9 = New-Object System.Windows.Forms.Label
+$Label9.Text = Load in CSV file"
+$Label9.Location  = New-Object System.Drawing.Point(0,160)
+$Label9.AutoSize = $true
+$main_form.Controls.Add($Label9)
+
 #Let's have a button that people can push #PushItPushItRealGood
 $Button = New-Object System.Windows.Forms.Button
 $Button.Location = New-Object System.Drawing.Size(400,10)
@@ -172,7 +186,7 @@ $Button4.Size = New-Object System.Drawing.Size(150,23)
 $Button4.Text = "Assign device to user"
 $main_form.Controls.Add($Button4)
 
-#What code do we want to actually run when people "Salt and Peper" our button
+#What code do we want to actually run when people "Salt and Pepper" our button
 $Button.Add_Click(
 {
 #We still want our AD user but maybe we can put this into a variable and have the lable call that so we can use .SamAccountName
@@ -228,17 +242,6 @@ $DeviceBody = @{
 }
 
 #Assign that actual device to a user in Workspace ONE
-
-<# This code may have changed
-$Button4.Add_Click(
-{
-$UserToCheck = $Label3.Text 
-$deviceenrollment = Invoke-RestMethod -Uri "$Server/API/system/users/$userid/registerdevice" -Method Post -Headers $header_v1 -Body ($body | ConvertTo-Json)
-}
-)
-#>
-
-#Ths is possible the new correct code
 $Button4.Add_Click(
 {
 $UserID = $Label7.Text 
