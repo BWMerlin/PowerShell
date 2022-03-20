@@ -21,12 +21,26 @@ the AirWatchAgent.msi file cannot be renamed
 #>
 $RemoteDLLocation = "C:\Program Files (x86)\AirwatchAgent.msi"
 
-#First we need to connect to the remote computer
+#First we need to ask what is the name of the remote computer to connect to.
+$RemotePCName = Read-host -Prompt "Enter in the computer name to connect to"
+
+#Now we connect to our remote computer
+try {
+    Enter-PSSession -ComputerName $RemotePCName
+}
+catch {
+    Write-Host "Unable to connect to the remote computer"
+}
 
 
-
-#Download the Workspace ONE agent onto the remote computer
+#Now download the Workspace ONE agent onto the remote computer
 Invoke-WebRequest -Uri $WS1AgentDL -OutFile $RemoteDLLocation
 
 #Run the Workspace ONE agent on the remote computer
-AirwatchAgent.msi /quiet ENROLL=Y IMAGE=n SERVER=$OrgWS1URL LGName=$OrgWS1ID USERNAME=$OrgStageUser PASSWORD=$OrgStagePass ASSIGNTOLOGGEDINUSER=Y
+Start-Process msiexec.exe -Wait -ArgumentList "/I $RemoteDLLocation /quiet ENROLL=Y IMAGE=n SERVER=$OrgWS1URL LGName=$OrgWS1ID USERNAME=$OrgStageUser PASSWORD=$OrgStagePass ASSIGNTOLOGGEDINUSER=Y"
+
+#Let's clean up after ourselves
+Remove-Item $RemoteDLLocation
+
+#Now can can close the remote connection
+Exit-PSSession
